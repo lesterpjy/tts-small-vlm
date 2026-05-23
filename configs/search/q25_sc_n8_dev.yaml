@@ -1,0 +1,27 @@
+# Qwen2.5-VL-7B self-consistency N=8 on dev-200.
+# MMMU-style CoT prompt. Baseline for search strategy comparisons.
+
+variant: q25_sc_n8_dev
+pipeline: baseline
+runner: self_consistency
+tags: [baseline, self_consistency, N8, mmmu_prompt]
+
+model:
+  name: "Qwen/Qwen2.5-VL-7B-Instruct"
+  backend: vllm
+  dtype: bfloat16
+  max_model_len: 16384
+
+generation:
+  prompt_style: mmmu
+  temperature: 0.7
+  max_new_tokens: 1024
+
+self_consistency:
+  n: 8
+
+evaluation:
+  subset_size: 200
+  seed: 42
+  stratify: true
+  min_per_language: 10

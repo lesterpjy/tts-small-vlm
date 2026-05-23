@@ -1,0 +1,33 @@
+# Qwen2.5-VL-7B DTR N=2, M=2 on dev-200. Majority vote verification.
+# Budget variant: 4 candidates total.
+
+variant: q25_dtr_n2m2
+pipeline: msa
+runner: dtr
+tags: [dtr, N2_M2, majority_vote]
+
+model:
+  name: "Qwen/Qwen2.5-VL-7B-Instruct"
+  backend: vllm
+  dtype: bfloat16
+  max_model_len: 16384
+
+describe:
+  n_samples: 2
+  temperature: 0.7
+  max_tokens: 1024
+
+reason:
+  m_samples: 2
+  temperature: 0.7
+  max_tokens: 1024
+  use_cot: true
+
+verify:
+  method: majority_vote
+
+evaluation:
+  subset_size: 200
+  seed: 42
+  stratify: true
+  min_per_language: 10

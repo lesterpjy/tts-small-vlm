@@ -1,0 +1,26 @@
+# Qwen3.5-4B SC-N=16 on test set, max_new_tokens=2048.
+# Best validated configuration submitted to ImageCLEF challenge.
+
+variant: q35_sc_n16_2k_test
+pipeline: baseline
+runner: self_consistency
+tags: [baseline, self_consistency, N16, mmmu_prompt, test, challenge, max2k]
+
+model:
+  name: "Qwen/Qwen3.5-4B"
+  backend: vllm
+  dtype: bfloat16
+  max_model_len: 16384
+
+generation:
+  prompt_style: mmmu
+  temperature: 0.7
+  max_new_tokens: 2048
+
+self_consistency:
+  n: 16
+
+evaluation:
+  dataset: imageclef_mcq_test
+  subset_size: null
+  seed: 42

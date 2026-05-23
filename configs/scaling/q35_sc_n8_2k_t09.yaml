@@ -1,0 +1,26 @@
+# Qwen3.5-4B SC-N=8 temperature sweep: T=0.9 on dev-200, max_new_tokens=2048.
+# High temperature for diversity-quality tradeoff analysis.
+
+variant: q35_sc_n8_2k_t09
+pipeline: baseline
+runner: self_consistency
+tags: [baseline, self_consistency, N8, mmmu_prompt, temp_sweep, t09, max2k, dev]
+
+model:
+  name: "Qwen/Qwen3.5-4B"
+  backend: vllm
+  dtype: bfloat16
+  max_model_len: 16384
+
+generation:
+  prompt_style: mmmu
+  temperature: 0.9
+  max_new_tokens: 2048
+
+self_consistency:
+  n: 8
+
+evaluation:
+  dataset: examsv_validation
+  subset_size: 200
+  seed: 42

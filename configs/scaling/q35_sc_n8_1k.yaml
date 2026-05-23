@@ -1,0 +1,26 @@
+# Qwen3.5-4B SC-N=8 on full validation (n=4651), max_new_tokens=1024.
+# Baseline token budget for scaling comparison.
+
+variant: q35_sc_n8_1k
+pipeline: baseline
+runner: self_consistency
+tags: [baseline, self_consistency, N8, mmmu_prompt, val_full]
+
+model:
+  name: "Qwen/Qwen3.5-4B"
+  backend: vllm
+  dtype: bfloat16
+  max_model_len: 16384
+
+generation:
+  prompt_style: mmmu
+  temperature: 0.7
+  max_new_tokens: 1024
+
+self_consistency:
+  n: 8
+
+evaluation:
+  dataset: examsv_validation
+  subset_size: null
+  seed: 42

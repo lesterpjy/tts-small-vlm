@@ -1,0 +1,24 @@
+# Qwen3.5-4B zero-shot on full validation (n=4651).
+# Official_short prompt with guided choice decoding.
+
+variant: q35_zero_shot
+pipeline: baseline
+runner: zero_shot
+tags: [baseline, zero_shot, official_prompt, guided_choice, val_full]
+
+model:
+  name: "Qwen/Qwen3.5-4B"
+  backend: vllm
+  dtype: bfloat16
+  max_model_len: 16384
+
+generation:
+  prompt_style: official_short
+  temperature: 0.0
+  max_new_tokens: 8
+  guided_choice: ["A", "B", "C", "D", "E"]
+
+evaluation:
+  dataset: examsv_validation
+  subset_size: null
+  seed: 42

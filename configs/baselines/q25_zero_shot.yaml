@@ -1,0 +1,23 @@
+# Qwen2.5-VL-7B zero-shot baseline on full validation (n=4651).
+# Molmo/official_short prompt with guided choice decoding.
+
+variant: q25_zero_shot
+pipeline: baseline
+runner: zero_shot
+tags: [baseline, zero_shot, official_prompt, guided_choice, val_full]
+
+model:
+  name: "Qwen/Qwen2.5-VL-7B-Instruct"
+  backend: vllm
+  dtype: bfloat16
+  max_model_len: 16384
+
+generation:
+  prompt_style: official_short
+  temperature: 0.0
+  max_new_tokens: 8
+  guided_choice: ["A", "B", "C", "D", "E"]
+
+evaluation:
+  subset_size: null
+  seed: 42

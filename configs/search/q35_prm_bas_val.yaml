@@ -1,0 +1,48 @@
+# Qwen3.5-4B DTR + PRM-BAS search on full validation (n=4651).
+# Majority vote verification. Beam-annealing search guided by
+# Qwen-VL-PRM step scores.
+
+variant: q35_prm_bas_val
+pipeline: msa
+runner: dtr
+tags: [prm_bas, majority_vote, qwen_vl_prm, val_full]
+
+model:
+  name: "Qwen/Qwen3.5-4B"
+  backend: vllm
+  dtype: bfloat16
+  max_model_len: 16384
+  gpu_memory_utilization: 0.45
+
+describe:
+  n_samples: 2
+  temperature: 0.7
+  max_tokens: 2048
+
+reason:
+  temperature: 0.7
+  max_tokens: 2048
+  use_cot: true
+  cot_style: mmmu
+
+search:
+  method: prm_bas
+  step_scorer:
+    method: qwen_vl_prm
+  prm_bas:
+    B0: 4
+    B: 2
+    anneal_tau: 0.05
+    max_depth: 6
+    max_step_tokens: 512
+    stop_marker: "answer:"
+
+verify:
+  method: majority_vote
+
+evaluation:
+  dataset: examsv_validation
+  subset_size: null
+  seed: 42
+  stratify: true
+  min_per_language: 10

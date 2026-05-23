@@ -1,0 +1,40 @@
+# Qwen2.5-VL-7B DTR N=4, M=4 + Qwen-VL-PRM-7B offline rescoring on dev-200.
+# Two-step workflow: (1) generate DTR candidates, (2) rescore with PRM.
+
+variant: q25_dtr_n4m4_prm
+pipeline: msa
+runner: dtr
+tags: [dtr, qwen_vl_prm, segmented]
+
+model:
+  name: "Qwen/Qwen2.5-VL-7B-Instruct"
+  backend: vllm
+  dtype: bfloat16
+  max_model_len: 16384
+
+describe:
+  n_samples: 4
+  temperature: 0.7
+  max_tokens: 1024
+
+reason:
+  m_samples: 4
+  temperature: 0.7
+  max_tokens: 1024
+  use_cot: true
+  cot_style: mmmu
+
+verify:
+  method: majority_vote
+
+prm_rescore:
+  model_id: "ob11/Qwen-VL-PRM-7B"
+  mode: segmented
+  aggregation: overall
+  skip_high_confidence: false
+
+evaluation:
+  subset_size: 200
+  seed: 42
+  stratify: true
+  min_per_language: 10

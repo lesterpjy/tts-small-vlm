@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "nlp2-vlm candidate record (spec §4)",
+  "type": "object",
+  "required": [
+    "run_id",
+    "question_id",
+    "dataset",
+    "split",
+    "subject",
+    "language",
+    "content_type",
+    "image_path",
+    "question_text",
+    "options",
+    "gold",
+    "descriptions",
+    "chains",
+    "verifier",
+    "correct",
+    "total_vlm_calls",
+    "total_latency_s",
+    "timestamp"
+  ],
+  "properties": {
+    "run_id": {"type": "string"},
+    "question_id": {"type": ["string", "null"]},
+    "dataset": {"type": "string"},
+    "split": {"type": "string"},
+    "subject": {"type": ["string", "null"]},
+    "language": {"type": ["string", "null"]},
+    "content_type": {"type": ["string", "null"]},
+    "image_path": {"type": ["string", "null"]},
+    "question_text": {"type": ["string", "null"]},
+    "options": {"type": "object"},
+    "gold": {"type": ["string", "null"]},
+    "descriptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "idx", "text", "prompt_tokens", "completion_tokens",
+          "logprob_mean", "latency_s", "model", "temperature", "seed"
+        ]
+      }
+    },
+    "chains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "desc_idx", "chain_idx", "reasoning", "extracted_answer",
+          "prompt_tokens", "completion_tokens", "logprob_mean",
+          "latency_s", "model", "temperature", "seed"
+        ]
+      }
+    },
+    "verifier": {
+      "type": "object",
+      "required": [
+        "method", "selected_answer", "cluster_sizes",
+        "confidence", "tie_break", "scored_candidates", "latency_s"
+      ]
+    },
+    "correct": {"type": ["boolean", "null"]},
+    "total_vlm_calls": {"type": "integer"},
+    "total_latency_s": {"type": "number"},
+    "timestamp": {"type": "string"}
+  }
+}

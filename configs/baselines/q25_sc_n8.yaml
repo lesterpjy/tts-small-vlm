@@ -1,0 +1,26 @@
+# Qwen2.5-VL-7B self-consistency N=8 on full validation (n=4651).
+# MMMU-style CoT prompt with majority vote aggregation.
+
+variant: q25_sc_n8
+pipeline: baseline
+runner: self_consistency
+tags: [baseline, self_consistency, N8, mmmu_prompt, val_full]
+
+model:
+  name: "Qwen/Qwen2.5-VL-7B-Instruct"
+  backend: vllm
+  dtype: bfloat16
+  max_model_len: 16384
+
+generation:
+  prompt_style: mmmu
+  temperature: 0.7
+  max_new_tokens: 1024
+
+self_consistency:
+  n: 8
+
+evaluation:
+  dataset: examsv_validation
+  subset_size: null
+  seed: 42
