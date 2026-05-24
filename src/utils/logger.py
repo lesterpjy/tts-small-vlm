@@ -22,11 +22,18 @@ from typing import Any, Iterator
 
 import yaml
 from loguru import logger
-from opentelemetry import trace as _otel_trace
-from opentelemetry.trace import Status, StatusCode, Tracer
 
 from src.utils.tracing import init_phoenix
 from src.utils.wandb_logger import init_wandb
+
+
+def _set_error_status(span: Any) -> None:
+    try:
+        from opentelemetry.trace import Status, StatusCode
+        span.set_status(Status(StatusCode.ERROR))
+    except Exception:
+        pass
+
 
 # OpenInference semantic convention attribute names.
 # OpenInference semantic conventions - Phoenix's UI columns are wired to
@@ -178,8 +185,6 @@ class RunContext:
         group: str | None = None,
         *,
         variant_name: str | None = None,
-        push_to_hub: bool = False,
-        hub_repo_id: str | None = None,
     ) -> None:
         self.run_id = run_id
         self.variant_name = variant_name or config.get("variant", "unknown")
@@ -189,11 +194,9 @@ class RunContext:
         self.jsonl_path = self.out_dir / "candidates.jsonl"
         self._tags = tags or []
         self._group = group
-        self._push_to_hub = push_to_hub
-        self._hub_repo_id = hub_repo_id or os.environ.get("HF_RUNS_REPO")
 
         self._jsonl_fp = None
-        self._tracer: Tracer | None = None
+        self._tracer: Any = None
         self._wandb_run: Any = _NullRun()
         self._n_written = 0
         self._start_time = 0.0
@@ -251,21 +254,7 @@ class RunContext:
     def __exit__(self, exc_type, exc, tb) -> None:
         elapsed = time.time() - self._start_time
 
-        # Optional HF Hub push. Do this BEFORE finishing the W&B run
-        # so we can record the URL in the same run's summary.
-        hub_url: str | None = None
-        if self._push_to_hub and self._hub_repo_id and self._n_written > 0:
-            try:
-                from src.utils.hub import push_run_to_hub
-
-                hub_url = push_run_to_hub(
-                    self.jsonl_path, self.run_id, self._hub_repo_id
-                )
-                logger.info("Pushed run to HF Hub: {}", hub_url)
-            except Exception:
-                logger.exception("HF Hub push failed; continuing")
-
-        self._log_final_summary(elapsed, hub_url)
+        self._log_final_summary(elapsed)
 
         try:
             self._wandb_run.finish(exit_code=0 if exc_type is None else 1)
@@ -314,7 +303,7 @@ class RunContext:
                 yield span
             except Exception as exc:
                 span.record_exception(exc)
-                span.set_status(Status(StatusCode.ERROR))
+                _set_error_status(span)
                 raise
 
     @contextmanager
@@ -327,7 +316,7 @@ class RunContext:
                 yield span
             except Exception as exc:
                 span.record_exception(exc)
-                span.set_status(Status(StatusCode.ERROR))
+                _set_error_status(span)
                 raise
 
     @contextmanager
@@ -374,7 +363,7 @@ class RunContext:
                 yield span
             except Exception as exc:
                 span.record_exception(exc)
-                span.set_status(Status(StatusCode.ERROR))
+                _set_error_status(span)
                 raise
 
     @staticmethod
@@ -431,7 +420,7 @@ class RunContext:
 
     # -- end-of-run summary --
 
-    def _log_final_summary(self, elapsed: float, hub_url: str | None) -> None:
+    def _log_final_summary(self, elapsed: float) -> None:
         """Write scalar summary + stratified tables to W&B. Safe no-op when
         W&B is unavailable (self._wandb_run is _NullRun)."""
         n_q = max(self._n_written, 1)
@@ -464,8 +453,6 @@ class RunContext:
             s["compute/chains_per_q_mean"] = self._n_total_chains / n_q
             for conf, cnt in self._confidence_counts.items():
                 s[f"confidence/{conf}"] = cnt
-            if hub_url is not None:
-                s["hub_url"] = hub_url
         except Exception:
             pass
 
@@ -612,8 +599,6 @@ def run_context(
     group: str | None = None,
     *,
     variant_name: str | None = None,
-    push_to_hub: bool = False,
-    hub_repo_id: str | None = None,
 ) -> Iterator[RunContext]:
     ctx = RunContext(
         run_id=run_id,
@@ -622,8 +607,6 @@ def run_context(
         tags=tags,
         group=group,
         variant_name=variant_name,
-        push_to_hub=push_to_hub,
-        hub_repo_id=hub_repo_id,
     )
     with ctx as active:
         yield active

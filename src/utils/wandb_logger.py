@@ -35,7 +35,7 @@ def init_wandb(
 
     try:
         run = wandb.init(
-            project=os.environ.get("WANDB_PROJECT", "nlp2-vlm-tts"),
+            project=os.environ.get("WANDB_PROJECT", "tts-small-vlm"),
             entity=os.environ.get("WANDB_ENTITY") or None,
             name=run_id,
             config={**config, "run_id": run_id},

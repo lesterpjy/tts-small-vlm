@@ -51,7 +51,7 @@ tts-small-vlm/
 │   └── test/               # Test-set submission config
 ├── slurm/                  # SLURM job scripts (Snellius HPC)
 ├── eval/                   # Stratified evaluation script
-├── paper/                  # Report PDF and figure generation
+├── paper/                  # Figure generation scripts
 │   └── figures/            # plot_figures.py, generated PDFs
 ├── tests/                  # Unit tests (49 tests, fully mocked)
 ├── notebook.ipynb          # Pipeline walkthrough with search and verification

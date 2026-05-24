@@ -12,7 +12,7 @@ import yaml
 from loguru import logger
 from PIL import Image
 
-# --- Answer normalization (reused from starter.py) ---
+# --- Answer normalization ---
 
 CYRILLIC_TO_LATIN = {
     "А": "A", "Б": "B", "В": "C", "Г": "D", "Д": "E",

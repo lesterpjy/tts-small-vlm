@@ -24,6 +24,7 @@
 
 set -euo pipefail
 
+# Adapt module loads for your HPC system (versions below are for SURFsara Snellius).
 module purge
 module load 2024
 module load Python/3.12.3-GCCcore-13.3.0

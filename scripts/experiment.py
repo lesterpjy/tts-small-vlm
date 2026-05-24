@@ -15,7 +15,6 @@ Usage:
     uv run python scripts/experiment.py --only dtr           # DTR only
     uv run python scripts/experiment.py --only smoke         # smoke test
     uv run python scripts/experiment.py --subset 10          # quick test on 10 q's
-    uv run python scripts/experiment.py --push-to-hub        # + push JSONL to HF
 """
 
 from __future__ import annotations
@@ -434,94 +433,6 @@ def run_self_consistency_q(model, processor, item, ctx, model_name, seed, cfg, n
     )
 
 
-def run_visuothink_q(model, processor, item, ctx, model_name, seed, cfg, n=8):
-    """Self-consistency over N VisuoThink reasoning chains (image re-examination)."""
-    from src.utils import Candidate
-    from src.verify import majority_vote
-    from src.visuothink import visuothink_sc
-
-    temperature, max_new_tokens = _gen_params(cfg, default_temp=0.7, default_max_tokens=512)
-    vt_cfg = cfg.get("visuothink", {})
-    max_steps = int(vt_cfg.get("max_steps", 6))
-    re_examine_every = int(vt_cfg.get("re_examine_every", 2))
-    max_verify_tokens = int(vt_cfg.get("max_verify_tokens", 128))
-
-    qid = item.get("sample_id")
-    gold = normalize_answer_key(item.get("answer_key", "")) if item.get("answer_key") else None
-    span_item = {**item, "gold": gold}
-
-    t0 = time.perf_counter()
-    with ctx.question_span(span_item) as qspan:
-        with ctx.stage_span("visuothink", n_chains=n, max_steps=max_steps):
-            candidates, all_meta = visuothink_sc(
-                model, processor, item["image"],
-                n=n,
-                max_steps=max_steps,
-                re_examine_every=re_examine_every,
-                temperature=temperature,
-                max_step_tokens=max_new_tokens,
-                max_verify_tokens=max_verify_tokens,
-                seed=seed,
-                ctx=ctx,
-                model_name=model_name,
-            )
-
-        chains_meta = []
-        for i, (c, meta) in enumerate(zip(candidates, all_meta)):
-            n_verify = sum(1 for m in meta if m["type"] == "verify")
-            n_correct = sum(1 for m in meta if m["type"] == "correct")
-            chains_meta.append(chain_entry(
-                desc_idx=-1, chain_idx=i, reasoning=c.reasoning,
-                extracted_answer=c.answer,
-                prompt_tokens=c.prompt_tokens,
-                completion_tokens=c.completion_tokens,
-                logprob_mean=c.logprob, latency_s=c.latency_s,
-                model=model_name, temperature=temperature, seed=seed,
-            ))
-
-        with ctx.stage_span("verify", method="majority_vote"):
-            with ctx.stage_span("verifier.majority_vote"):
-                selection = majority_vote(candidates)
-
-        winner = selection.answer
-
-        try:
-            q_prompt_toks = sum(int(c.prompt_tokens or 0) for c in candidates)
-            q_completion_toks = sum(int(c.completion_tokens or 0) for c in candidates)
-            qspan.set_attribute("predicted", winner or "")
-            qspan.set_attribute("correct", bool(winner == gold) if gold else False)
-            qspan.set_attribute("n_chains", len(candidates))
-            if gold is not None:
-                qspan.set_attribute("gold", gold)
-        except Exception:
-            pass
-    total_latency_s = time.perf_counter() - t0
-
-    verifier = {
-        "method": "visuothink_sc",
-        "selected_answer": winner,
-        "cluster_sizes": dict(selection.vote_counts),
-        "confidence": selection.confidence,
-        "tie_break": selection.metadata.get("tiebreak"),
-        "scored_candidates": None,
-        "latency_s": 0.0,
-    }
-    return _baseline_record(
-        run_id=ctx.run_id,
-        item=item,
-        gen=GenerationOutput(text=""),
-        answer=winner,
-        gold=gold,
-        method_label="visuothink",
-        model_name=model_name,
-        temperature=temperature,
-        seed=seed,
-        total_latency_s=total_latency_s,
-        verifier_override=verifier,
-        descriptions_entries=[],
-        chain_entries=chains_meta,
-    )
-
 
 # ---------------------------------------------------------------------------
 # Experiment orchestration
@@ -667,7 +578,6 @@ def run_variant(
     dataset,
     indices,
     base_out: Path,
-    push_to_hub: bool,
     dataset_meta: dict | None = None,
     resume_dir: Path | None = None,
 ):
@@ -717,7 +627,6 @@ def run_variant(
         run_id, config, out_dir, tags=tags,
         group=f"{pipeline_label}-{config.get('verify', {}).get('method', 'majvote')}",
         variant_name=variant_name,
-        push_to_hub=push_to_hub,
     ) as ctx:
         for idx in tqdm(indices, desc=variant_name):
             item = dict(dataset[idx])
@@ -796,11 +705,6 @@ def _build_runner(cfg: dict, model_name: str):
         def _inner_sc(m, p, item, ctx):
             return run_self_consistency_q(m, p, item, ctx, model_name, SEED, cfg, n=n)
         return _inner_sc
-    if runner == "visuothink":
-        n = int(cfg.get("visuothink", {}).get("n", 8))
-        def _inner_vt(m, p, item, ctx):
-            return run_visuothink_q(m, p, item, ctx, model_name, SEED, cfg, n=n)
-        return _inner_vt
     if runner == "dtr":
         search_resources = _maybe_load_search_resources(cfg)
         reason_resources = _maybe_load_reason_model(cfg)
@@ -939,8 +843,6 @@ def main():
              "SLURM array shards (e.g. 'shard0'). Run IDs are otherwise "
              "minute-precision and collide for tasks starting concurrently.",
     )
-    parser.add_argument("--push-to-hub", action="store_true",
-                        help="Push each run's JSONL to HF_RUNS_REPO as a new branch.")
     parser.add_argument("--verbose", "-v", action="store_true")
     args = parser.parse_args()
 
@@ -1045,7 +947,7 @@ def main():
             per_question=_build_runner(cfg, model_name),
             model=model, processor=processor,
             dataset=dataset, indices=dev_indices,
-            base_out=base_out, push_to_hub=args.push_to_hub,
+            base_out=base_out,
             dataset_meta=dataset_meta,
             resume_dir=args.resume_dir,
         )

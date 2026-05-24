@@ -182,7 +182,7 @@ def main():
         try:
             import wandb
             run = wandb.init(
-                project=os.environ.get("WANDB_PROJECT", "nlp2-vlm-tts"),
+                project=os.environ.get("WANDB_PROJECT", "tts-small-vlm"),
                 entity=os.environ.get("WANDB_ENTITY") or None,
                 name=run_id,
                 resume="allow",
