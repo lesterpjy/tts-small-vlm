@@ -51,7 +51,8 @@ tts-small-vlm/
 │   └── test/               # Test-set submission config
 ├── slurm/                  # SLURM job scripts (Snellius HPC)
 ├── eval/                   # Stratified evaluation script
-├── figures/                # Paper figure generation (plot_figures.py)
+├── paper/                  # Report PDF and figure generation
+│   └── figures/            # plot_figures.py, generated PDFs
 ├── tests/                  # Unit tests (49 tests, fully mocked)
 ├── notebook.ipynb          # Pipeline walkthrough with search and verification
 ├── requirements.txt
@@ -144,7 +145,7 @@ sbatch slurm/test_submission.sbatch     # Best config + guided repair on test
 python scripts/analyze.py --run-dir runs/<run_id>
 
 # Generate paper figures (hardcoded data, no GPU needed)
-python figures/plot_figures.py
+python paper/figures/plot_figures.py
 ```
 
 ## Notebook
