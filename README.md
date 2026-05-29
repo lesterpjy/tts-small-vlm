@@ -1,6 +1,6 @@
 # Test-Time Scaling for Small VLMs on Multilingual Exam QA
 
-Code for the paper *"More Tokens, Fewer Trees: Test-Time Scaling for Small VLMs on Multilingual Exam QA"* (NLP2, University of Amsterdam, 2025).
+Code for the paper *"More Tokens, Fewer Trees: Test-Time Scaling for Small VLMs on Multilingual Exam QA"*
 
 We study test-time scaling (TTS) strategies for open-weight vision-language models (VLMs) on the [EXAMS-V](https://huggingface.co/datasets/MBZUAI/EXAMS-V) benchmark under a single-GPU, 7B-parameter budget, as part of the [ImageCLEF 2026 Multimodal Reasoning](https://www.imageclef.org/2026/multimodal-reasoning) shared task.
 
@@ -167,8 +167,6 @@ The [EXAMS-V dataset](https://huggingface.co/datasets/MBZUAI/EXAMS-V) is loaded 
 
 - Spiros Baxevanakis (University of Amsterdam)
 - Lester Yang (University of Amsterdam)
-
-Supervised by John Gkountouras (UvA NLP2 TA).
 
 ## License
 
