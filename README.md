@@ -163,10 +163,6 @@ GPU-dependent cells are guarded with a `RUN_INFERENCE` flag for readability with
 
 The [EXAMS-V dataset](https://huggingface.co/datasets/MBZUAI/EXAMS-V) is loaded automatically from HuggingFace. It contains approximately 25,000 real school exam questions across 13 languages and 20 subjects. Our experiments use the validation split (4,651 questions) and a 200-question stratified subset for ablations.
 
-## Authors
-
-- Spiros Baxevanakis (University of Amsterdam)
-- Lester Yang (University of Amsterdam)
 
 ## License
 
