@@ -1,4 +1,4 @@
-# Test-Time Scaling for Small VLMs on Multilingual Visual MCQ
+# TTS for Small VLMs on Multilingual Visual MCQ
 
 Code for the paper [Test-Time Scaling for Small VLMs on Multilingual Visual MCQ](https://arxiv.org/abs/2607.09438).
 
