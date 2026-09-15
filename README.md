@@ -2,7 +2,9 @@
 
 Code for the paper [Test-Time Scaling for Small VLMs on Multilingual Visual MCQ](https://arxiv.org/abs/2607.09438).
 
-We study test-time scaling (TTS) strategies for open-weight vision-language models (VLMs) on the [EXAMS-V](https://huggingface.co/datasets/MBZUAI/EXAMS-V) benchmark under a single-GPU, 7B-parameter budget, as part of the [ImageCLEF 2026 Multimodal Reasoning](https://www.imageclef.org/2026/multimodal-reasoning) shared task.
+🏆 **1st place** at the [ImageCLEF 2026 Multimodal Reasoning](https://www.imageclef.org/2026/multimodal-reasoning) shared task (Visual MCQ track).
+
+We study test-time scaling (TTS) strategies for open-weight vision-language models (VLMs) on the [EXAMS-V](https://huggingface.co/datasets/MBZUAI/EXAMS-V) benchmark under a single-GPU, 7B-parameter budget.
 
 ## Key Results
 
@@ -17,6 +19,7 @@ We study test-time scaling (TTS) strategies for open-weight vision-language mode
 | Best (N=16, 2k + guided repair) | Qwen3.5-4B | **84.1%** | test |
 
 Three main findings:
+
 1. The dominant scaling axis is per-chain token budget, not chain count: doubling the budget recovers +3.7 pp by eliminating truncation; doubling chains adds only +0.15 pp.
 2. PRM-guided beam search underperforms flat self-consistency (-0.39 pp), with search collapsing to unanimous beams on 72% of questions.
 3. Neither a generative critic nor a trained PRM beats majority vote, replicated across two policies.
@@ -79,6 +82,7 @@ pytest tests/ -v
 ```
 
 **Models** (downloaded automatically on first use):
+
 - [Qwen2.5-VL-7B-Instruct](https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct) (baselines, search experiments)
 - [Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B) (scaling, best configuration)
 - [Qwen-VL-PRM-7B](https://huggingface.co/ob11/Qwen-VL-PRM-7B) (PRM-BAS search, PRM rescoring)
@@ -151,6 +155,7 @@ python paper/figures/plot_figures.py
 ## Notebook
 
 `notebook.ipynb` walks through the full pipeline:
+
 1. Baselines (zero-shot, chain-of-thought, self-consistency)
 2. Search strategy (PRM-BAS beam-annealing search within a describe-then-reason scaffold)
 3. Verification strategies (training-free generative critic, Qwen-VL-PRM discriminative rescoring)
@@ -162,7 +167,6 @@ GPU-dependent cells are guarded with a `RUN_INFERENCE` flag for readability with
 ## Data
 
 The [EXAMS-V dataset](https://huggingface.co/datasets/MBZUAI/EXAMS-V) is loaded automatically from HuggingFace. It contains approximately 25,000 real school exam questions across 13 languages and 20 subjects. Our experiments use the validation split (4,651 questions) and a 200-question stratified subset for ablations.
-
 
 ## License
 
